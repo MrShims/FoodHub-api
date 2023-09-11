@@ -2,6 +2,7 @@ package org.mrshim.menuservice.service;
 
 import lombok.RequiredArgsConstructor;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
+import org.mrshim.menuservice.exception.DishNotFoundException;
 import org.mrshim.menuservice.model.Dish;
 import org.mrshim.menuservice.repository.MenuRepository;
 import org.springframework.stereotype.Service;
@@ -38,26 +39,56 @@ public class MenuService {
 
     }
 
-    public Optional<Dish> getDish(String id)
+    public Dish getDish(String id)
     {
 
-        return menuRepository.findById(id);
+        Optional<Dish> byId = menuRepository.findById(id);
+
+        if (byId.isPresent()) return byId.get();
+
+        else throw new DishNotFoundException("Блюдо с id - "+id+" не найдено");
 
 
     }
 
-    public boolean deleteDish(String id)
+    public void deleteDish(String id)
     {
         Optional<Dish> byId = menuRepository.findById(id);
 
         if (byId.isPresent())
         {
             menuRepository.delete(byId.get());
-            return true;
+
         }
 
-        return false;
+        else throw new DishNotFoundException("Блюдо с id - "+id+" не найдено");
 
+
+
+    }
+
+
+    public Dish editDish(String id, CreateDishRequestDto createDishRequestDto)
+    {
+        Optional<Dish> byId = menuRepository.findById(id);
+
+
+        if (byId.isPresent())
+        {
+
+            Dish dish = byId.get();
+
+            dish.setName(createDishRequestDto.getName());
+            dish.setPrice(createDishRequestDto.getPrice());
+            dish.setDescription(createDishRequestDto.getDescription());
+            dish.setIngredients(createDishRequestDto.getIngredients());
+
+            return menuRepository.save(dish);
+
+
+        }
+
+        else throw new DishNotFoundException("Блюдо с id - "+id+" не найдено");
 
 
     }
