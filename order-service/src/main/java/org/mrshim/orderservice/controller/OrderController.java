@@ -37,4 +37,28 @@ public class OrderController
         return new ResponseEntity<>(allOrders,HttpStatus.OK);
 
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOrderById(@PathVariable Long id)
+    {
+        Order orderById = orderService.getOrderById(id);
+
+
+        return new ResponseEntity<>(orderById,HttpStatus.OK);
+
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long id)
+    {
+
+        orderService.cancelOrder(id);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
+
+
+
 }

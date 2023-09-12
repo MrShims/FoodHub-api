@@ -3,6 +3,7 @@ package org.mrshim.orderservice.service;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.orderservice.dto.CreateOrderRequest;
 import org.mrshim.orderservice.dto.OrderLineDishesRequest;
+import org.mrshim.orderservice.exception.OrderNotFoundException;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.model.OrderLineDish;
 import org.mrshim.orderservice.repository.OrderRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +68,43 @@ public class OrderService {
     {
 
         return orderRepository.findAll();
+
+
+
+    }
+
+    public Order getOrderById(Long id)
+    {
+
+        Optional<Order> byId = orderRepository.findById(id);
+
+        if (byId.isPresent())
+        {
+            return byId.get();
+        }
+
+        else throw new OrderNotFoundException("Заказ не найден");
+
+
+
+    }
+
+    public void cancelOrder(Long id)
+    {
+        Optional<Order> byId = orderRepository.findById(id);
+
+        if  (byId.isPresent())
+        {
+
+            Order order = byId.get();
+
+            order.setStatus("Отменен");
+
+            orderRepository.save(order);
+
+
+        }
+        else throw new OrderNotFoundException("Заказ с id"+id+" не найден");
 
 
 
