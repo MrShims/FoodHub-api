@@ -11,6 +11,7 @@
       <module>order-service</module>
     <module>order-service</module>
     <module>discovery-service</module>
+    <module>api-gateway</module>
   </modules>
   <parent>
     <groupId>org.springframework.boot</groupId>
