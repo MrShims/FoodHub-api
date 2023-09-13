@@ -21,9 +21,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
 
-    public Long createOrder(CreateOrderRequest createOrderRequest)
-    {
-        Order order=new Order();
+    public Long createOrder(CreateOrderRequest createOrderRequest) {
+        Order order = new Order();
 
         order.setContact(createOrderRequest.getContact());
         order.setOrderAmount(createOrderRequest.getOrderAmount());
@@ -36,25 +35,21 @@ public class OrderService {
         order.setPaymentMethod(createOrderRequest.getPaymentMethod());
 
 
-
-
-      return orderRepository.save(order).getId();
+        return orderRepository.save(order).getId();
     }
 
-    private List<OrderLineDish> mapToOrderList(List<OrderLineDishesRequest> orderLineDishesRequests)
-    {
+    private List<OrderLineDish> mapToOrderList(List<OrderLineDishesRequest> orderLineDishesRequests) {
         ArrayList<OrderLineDish> orderLineDishArrayList = new ArrayList<>();
 
         for (int i = 0; i < orderLineDishesRequests.size(); i++) {
 
             OrderLineDishesRequest orderLineDishesRequest = orderLineDishesRequests.get(i);
 
-            OrderLineDish orderLineDish=new OrderLineDish();
+            OrderLineDish orderLineDish = new OrderLineDish();
             orderLineDish.setQuantity(orderLineDishesRequest.getQuantity());
             orderLineDish.setName(orderLineDishesRequest.getName());
 
             orderLineDishArrayList.add(orderLineDish);
-
 
 
         }
@@ -64,37 +59,28 @@ public class OrderService {
 
     }
 
-    public List<Order> getAllOrders()
-    {
+    public List<Order> getAllOrders() {
 
         return orderRepository.findAll();
 
 
-
     }
 
-    public Order getOrderById(Long id)
-    {
+    public Order getOrderById(Long id) {
 
         Optional<Order> byId = orderRepository.findById(id);
 
-        if (byId.isPresent())
-        {
+        if (byId.isPresent()) {
             return byId.get();
-        }
-
-        else throw new OrderNotFoundException("Заказ не найден");
-
+        } else throw new OrderNotFoundException("Заказ не найден");
 
 
     }
 
-    public void cancelOrder(Long id)
-    {
+    public void cancelOrder(Long id) {
         Optional<Order> byId = orderRepository.findById(id);
 
-        if  (byId.isPresent())
-        {
+        if (byId.isPresent()) {
 
             Order order = byId.get();
 
@@ -103,16 +89,10 @@ public class OrderService {
             orderRepository.save(order);
 
 
-        }
-        else throw new OrderNotFoundException("Заказ с id"+id+" не найден");
-
+        } else throw new OrderNotFoundException("Заказ с id" + id + " не найден");
 
 
     }
-
-
-
-
 
 
 }
