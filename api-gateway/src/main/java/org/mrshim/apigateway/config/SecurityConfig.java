@@ -1,15 +1,20 @@
 package org.mrshim.apigateway.config;
 
+import lombok.RequiredArgsConstructor;
+import org.mrshim.apigateway.utils.JwtAuthConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
 @EnableWebFluxSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+   private final JwtAuthConverter jwtAuthConverter;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity security) {
@@ -19,6 +24,7 @@ public class SecurityConfig {
                 .authorizeExchange(authorizeExchangeSpec ->
                         authorizeExchangeSpec.pathMatchers("/eureka/**")
                                 .permitAll()
+                                .pathMatchers(HttpMethod.GET,"/menu").hasRole("ADMIN")
                                 .pathMatchers("/register")
                                 .permitAll()
                                 .pathMatchers("/login")
@@ -28,7 +34,7 @@ public class SecurityConfig {
 
                 )
                 .oauth2ResourceServer(oAuth2ResourceServerSpec ->
-                        oAuth2ResourceServerSpec.jwt(Customizer.withDefaults()));
+                        oAuth2ResourceServerSpec.jwt(configure->configure.jwtAuthenticationConverter(jwtAuthConverter)));
 
 
         return security.build();
