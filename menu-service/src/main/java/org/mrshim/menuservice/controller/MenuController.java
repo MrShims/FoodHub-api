@@ -1,7 +1,9 @@
 package org.mrshim.menuservice.controller;
 
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
 import org.mrshim.menuservice.model.Dish;
 import org.mrshim.menuservice.service.MenuService;
@@ -19,7 +21,10 @@ public class MenuController {
     private final MenuService menuService;
 
     @PostMapping
-    public ResponseEntity<?> createDish(@RequestBody CreateDishRequestDto createDishRequest) {
+    public ResponseEntity<?> createDish(@RequestBody CreateDishRequestDto createDishRequest, HttpServletRequest request) {
+
+
+        System.out.println(request.getHeader("Authorization"));
         menuService.createDish(createDishRequest);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
