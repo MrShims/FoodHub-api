@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
+import org.mrshim.menuservice.dto.RequestListStockDto;
+import org.mrshim.menuservice.dto.RequestStockDto;
 import org.mrshim.menuservice.model.Dish;
 import org.mrshim.menuservice.service.MenuService;
 import org.springframework.http.HttpStatus;
@@ -21,13 +23,23 @@ public class MenuController {
     private final MenuService menuService;
 
     @PostMapping
-    public ResponseEntity<?> createDish(@RequestBody CreateDishRequestDto createDishRequest, HttpServletRequest request) {
+    public ResponseEntity<?> createDish(@RequestBody CreateDishRequestDto createDishRequest) {
 
 
-        System.out.println(request.getHeader("Authorization"));
+
         menuService.createDish(createDishRequest);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
+
+    }
+
+    @PostMapping("/stock")
+    public boolean isInStock(@RequestBody(required = true) RequestListStockDto RequestListStockDto) {
+
+
+        boolean inStock = menuService.isInStock(RequestListStockDto);
+
+        return inStock;
 
     }
 

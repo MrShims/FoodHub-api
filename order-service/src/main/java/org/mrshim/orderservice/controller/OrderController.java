@@ -16,16 +16,20 @@ import java.util.List;
 @RequestMapping("/order")
 public class OrderController
 {
+
     private final OrderService orderService;
 
 
+
+
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest createOrderRequest)
-    {
+    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest createOrderRequest )  {
 
-        Long order = orderService.createOrder(createOrderRequest);
 
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
+        Long orderId = orderService.createOrder(createOrderRequest);
+
+        return new ResponseEntity<>(orderId,HttpStatus.OK);
+
 
     }
 
@@ -35,6 +39,16 @@ public class OrderController
         List<Order> allOrders = orderService.getAllOrders();
 
         return new ResponseEntity<>(allOrders,HttpStatus.OK);
+
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getUserOderHistory()
+    {
+
+        List<Order> userOderHistory = orderService.getUserOderHistory();
+
+        return new ResponseEntity<>(userOderHistory,HttpStatus.OK);
 
     }
 

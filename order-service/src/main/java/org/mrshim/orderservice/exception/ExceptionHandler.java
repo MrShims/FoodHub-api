@@ -15,6 +15,12 @@ public class ExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @org.springframework.web.bind.annotation.ExceptionHandler(CreateOrderException.class)
+    public ResponseEntity<?> handleCreateOrderException(CreateOrderException ex)
+    {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
 
 
 }

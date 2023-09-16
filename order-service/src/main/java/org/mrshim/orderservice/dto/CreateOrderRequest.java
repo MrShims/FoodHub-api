@@ -19,24 +19,15 @@ import java.util.List;
 @Builder
 public class CreateOrderRequest {
 
-    private Long userId;
 
-    private String status;
 
-    private LocalDateTime creationDate;
-
-    private LocalDateTime updateDate;
-
-    private List<OrderLineDishesRequest> LineDishes;
+    private List<OrderLineDishesRequest> lineDishes;
 
     private String deliveryAddress;
-
-    private BigDecimal orderAmount;
 
     private String paymentMethod;
 
     private String contact;
-
 
 
 }

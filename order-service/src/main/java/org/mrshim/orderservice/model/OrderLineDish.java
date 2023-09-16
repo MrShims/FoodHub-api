@@ -20,6 +20,9 @@ public class OrderLineDish {
     @Column(name = "quantity")
     private int quantity;
 
+    @Column(name = "price")
+    private BigDecimal price;
+
 
 
 

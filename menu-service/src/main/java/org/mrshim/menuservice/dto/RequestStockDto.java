@@ -1,9 +1,6 @@
-package org.mrshim.orderservice.dto;
+package org.mrshim.menuservice.dto;
 
-
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,12 +9,15 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class OrderLineDishesRequest {
+public class RequestStockDto {
+
 
     private String name;
 
     private int quantity;
 
     private BigDecimal price;
+
+
+
 }

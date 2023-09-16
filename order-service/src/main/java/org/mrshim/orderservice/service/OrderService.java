@@ -1,14 +1,23 @@
 package org.mrshim.orderservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.mrshim.orderservice.dto.CreateOrderRequest;
 import org.mrshim.orderservice.dto.OrderLineDishesRequest;
 import org.mrshim.orderservice.exception.OrderNotFoundException;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.model.OrderLineDish;
 import org.mrshim.orderservice.repository.OrderRepository;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,23 +29,105 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
+    private final WebClient.Builder webClient;
 
+    private final LoadBalancerClient loadBalancerClient;
+
+
+    private boolean isInStockDishes(List<OrderLineDishesRequest> lineDishes)
+    {
+        ServiceInstance serviceInstance = loadBalancerClient.choose("menu-service");
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("lineDishes", lineDishes);
+
+        String jsonString = jsonObject.toString();
+
+
+        String serviceUrl = "http://localhost" + ":" + serviceInstance.getPort();
+
+        Boolean block = webClient.baseUrl(serviceUrl)
+                .build().post().uri("/menu/stock")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(jsonString)
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .block();
+
+
+        return block;
+
+
+
+    }
+
+    private BigDecimal calculateSumOrder(List<OrderLineDishesRequest> lineDishes)
+    {
+        double a=0;
+
+        for (int i = 0; i < lineDishes.size(); i++) {
+
+            OrderLineDishesRequest orderLineDishesRequest = lineDishes.get(i);
+
+           a+=orderLineDishesRequest.getPrice().doubleValue()*orderLineDishesRequest.getQuantity();
+
+        }
+
+        return new BigDecimal(a);
+
+
+    }
+
+
+
+    @Transactional
     public Long createOrder(CreateOrderRequest createOrderRequest) {
         Order order = new Order();
 
+
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
+        Object userId = authentication.getToken().getClaim("sub");
+
+
+        List<OrderLineDishesRequest> lineDishes = createOrderRequest.getLineDishes();
+
+        BigDecimal sumOrder = calculateSumOrder(lineDishes);
+
+
         order.setContact(createOrderRequest.getContact());
-        order.setOrderAmount(createOrderRequest.getOrderAmount());
+
         order.setStatus("Принят");
         order.setCreationDate(LocalDateTime.now());
         order.setUpdateDate(LocalDateTime.now());
+        order.setUserId(userId.toString());
+        order.setOrderAmount(sumOrder);
         order.setDeliveryAddress(createOrderRequest.getDeliveryAddress());
         order.setLineDishes(mapToOrderList(createOrderRequest.getLineDishes()));
-        order.setUserId(createOrderRequest.getUserId());
         order.setPaymentMethod(createOrderRequest.getPaymentMethod());
 
 
         return orderRepository.save(order).getId();
+
     }
+
+    public List<Order> getUserOderHistory()
+    {
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
+        String userId = authentication.getToken().getClaim("sub");
+
+        List<Order> allOrdersByUserId = orderRepository.findAllByUserId(userId);
+
+
+        return allOrdersByUserId;
+
+
+
+    }
+
+
+
 
     private List<OrderLineDish> mapToOrderList(List<OrderLineDishesRequest> orderLineDishesRequests) {
         ArrayList<OrderLineDish> orderLineDishArrayList = new ArrayList<>();
@@ -48,6 +139,7 @@ public class OrderService {
             OrderLineDish orderLineDish = new OrderLineDish();
             orderLineDish.setQuantity(orderLineDishesRequest.getQuantity());
             orderLineDish.setName(orderLineDishesRequest.getName());
+            orderLineDish.setPrice(orderLineDishesRequest.getPrice());
 
             orderLineDishArrayList.add(orderLineDish);
 
