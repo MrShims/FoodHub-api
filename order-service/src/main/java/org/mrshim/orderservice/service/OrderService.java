@@ -1,9 +1,12 @@
 package org.mrshim.orderservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.aspectj.weaver.ast.Or;
 import org.json.JSONObject;
 import org.mrshim.orderservice.dto.CreateOrderRequest;
 import org.mrshim.orderservice.dto.OrderLineDishesRequest;
+import org.mrshim.orderservice.dto.OrderPlacedEvent;
+import org.mrshim.orderservice.exception.CreateOrderException;
 import org.mrshim.orderservice.exception.OrderNotFoundException;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.model.OrderLineDish;
@@ -11,6 +14,7 @@ import org.mrshim.orderservice.repository.OrderRepository;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,8 @@ public class OrderService {
     private final WebClient.Builder webClient;
 
     private final LoadBalancerClient loadBalancerClient;
+
+    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
 
     private boolean isInStockDishes(List<OrderLineDishesRequest> lineDishes)
@@ -57,9 +63,10 @@ public class OrderService {
 
         return block;
 
-
-
     }
+
+
+
 
     private BigDecimal calculateSumOrder(List<OrderLineDishesRequest> lineDishes)
     {
@@ -84,10 +91,16 @@ public class OrderService {
     public Long createOrder(CreateOrderRequest createOrderRequest) {
         Order order = new Order();
 
+        if (!isInStockDishes(createOrderRequest.getLineDishes())) throw new CreateOrderException("Ошибка формирования заказа");
+
 
         JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 
         Object userId = authentication.getToken().getClaim("sub");
+
+        String userEmail = authentication.getToken().getClaim("email");
+
+        String userName = authentication.getToken().getClaim("name");
 
 
         List<OrderLineDishesRequest> lineDishes = createOrderRequest.getLineDishes();
@@ -107,7 +120,33 @@ public class OrderService {
         order.setPaymentMethod(createOrderRequest.getPaymentMethod());
 
 
-        return orderRepository.save(order).getId();
+        Order save = orderRepository.save(order);
+
+
+        OrderPlacedEvent orderKafkaRequestDto = mapOrderToOrderKafkaRequest(save, userName, userEmail);
+
+        kafkaTemplate.send("notificationTopic",orderKafkaRequestDto);
+
+        return save.getId();
+
+
+    }
+
+    private OrderPlacedEvent mapOrderToOrderKafkaRequest(Order order, String name, String email)
+    {
+
+        OrderPlacedEvent orderKafkaRequestDto=new OrderPlacedEvent();
+        orderKafkaRequestDto.setId(order.getId());
+        orderKafkaRequestDto.setUserEmail(email);
+        orderKafkaRequestDto.setUserName(name);
+        orderKafkaRequestDto.setDeliveryAddress(orderKafkaRequestDto.getDeliveryAddress());
+        orderKafkaRequestDto.setCreationDate(order.getCreationDate());
+        orderKafkaRequestDto.setLineDishes(order.getLineDishes());
+        orderKafkaRequestDto.setOrderAmount(order.getOrderAmount());
+
+
+
+        return orderKafkaRequestDto;
 
     }
 
