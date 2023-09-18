@@ -12,11 +12,6 @@ public class NotificationServiceApplication {
     }
 
 
-    @KafkaListener(topics = "notificationTopic")
-    public void handleNotification(OrderPlacedEvent orderKafkaResponseDto) {
 
-        System.out.println(orderKafkaResponseDto.toString());
-
-    }
 
 }
