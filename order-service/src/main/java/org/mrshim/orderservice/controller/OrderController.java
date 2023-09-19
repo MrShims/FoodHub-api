@@ -3,6 +3,7 @@ package org.mrshim.orderservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.mrshim.orderservice.dto.CreateOrderRequest;
+import org.mrshim.orderservice.dto.EditStatusDto;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.service.OrderService;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,14 @@ public class OrderController
 
         return new ResponseEntity<>(orderById,HttpStatus.OK);
 
+    }
+
+    @PatchMapping()
+    public ResponseEntity<?> setStatusToOrder(@RequestBody EditStatusDto editStatusDto)
+    {
+        orderService.editStatusToOrder(editStatusDto);
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 

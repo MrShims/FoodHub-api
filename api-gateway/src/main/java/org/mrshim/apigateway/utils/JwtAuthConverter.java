@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticationToken>> {
@@ -19,6 +20,7 @@ public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticat
     public Mono<AbstractAuthenticationToken> convert(Jwt source) {
 
         Collection<GrantedAuthority> roles=extractAuthorities(source);
+
 
         return Mono.just(new JwtAuthenticationToken(source,roles));
     }

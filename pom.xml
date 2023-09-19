@@ -8,12 +8,13 @@
   <packaging>pom</packaging>
   <modules>
     <module>menu-service</module>
-      <module>order-service</module>
+    <module>order-service</module>
     <module>order-service</module>
     <module>discovery-service</module>
     <module>api-gateway</module>
     <module>auth-service</module>
-      <module>notification-service</module>
+    <module>notification-service</module>
+      <module>delivery-service</module>
   </modules>
   <parent>
     <groupId>org.springframework.boot</groupId>

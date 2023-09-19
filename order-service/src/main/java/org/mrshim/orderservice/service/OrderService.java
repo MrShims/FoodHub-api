@@ -1,16 +1,18 @@
 package org.mrshim.orderservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.weaver.ast.Or;
 import org.json.JSONObject;
-import org.mrshim.orderservice.dto.CreateOrderRequest;
-import org.mrshim.orderservice.dto.OrderLineDishesRequest;
-import org.mrshim.orderservice.dto.OrderPlacedEvent;
+import org.mrshim.orderservice.dto.*;
 import org.mrshim.orderservice.exception.CreateOrderException;
 import org.mrshim.orderservice.exception.OrderNotFoundException;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.model.OrderLineDish;
 import org.mrshim.orderservice.repository.OrderRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.MediaType;
@@ -38,6 +40,15 @@ public class OrderService {
     private final LoadBalancerClient loadBalancerClient;
 
     private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+
+    private final RabbitTemplate rabbitTemplate;
+
+    private final ObjectMapper objectMapper;
+    @Value("${rabbitmq.exchange}")
+    private String exchange;
+
+    @Value("${rabbitmq.routing.key}")
+    private String routingKey;
 
 
     private boolean isInStockDishes(List<OrderLineDishesRequest> lineDishes)
@@ -125,7 +136,7 @@ public class OrderService {
 
         OrderPlacedEvent orderKafkaRequestDto = mapOrderToOrderKafkaRequest(save, userName, userEmail);
 
-        kafkaTemplate.send("notificationTopic",orderKafkaRequestDto);
+       /* kafkaTemplate.send("notificationTopic",orderKafkaRequestDto);*/
 
         return save.getId();
 
@@ -222,6 +233,38 @@ public class OrderService {
 
         } else throw new OrderNotFoundException("Заказ с id" + id + " не найден");
 
+
+    }
+
+    public void editStatusToOrder(EditStatusDto editStatusDto)
+    {
+        String status = editStatusDto.getStatus();
+
+        Optional<Order> byId = orderRepository.findById(editStatusDto.getId());
+
+        if (byId.isPresent())
+        {
+            Order order = byId.get();
+            order.setStatus(status);
+            orderRepository.save(order);
+
+            RabbitMessageDto rabbitMessageDto=new RabbitMessageDto();
+            rabbitMessageDto.setId(order.getId());
+            rabbitMessageDto.setDeliveryAddress(order.getDeliveryAddress());
+
+
+            try {
+                String s = objectMapper.writeValueAsString(rabbitMessageDto);
+                rabbitTemplate.convertAndSend(exchange,routingKey,s);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+
+
+        }
+
+        else throw new OrderNotFoundException("Заказ не найден");
 
     }
 
