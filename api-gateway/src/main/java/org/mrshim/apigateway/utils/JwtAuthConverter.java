@@ -11,36 +11,37 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticationToken>> {
     @Override
     public Mono<AbstractAuthenticationToken> convert(Jwt source) {
 
-        Collection<GrantedAuthority> roles=extractAuthorities(source);
+        Collection<GrantedAuthority> roles = extractAuthorities(source);
 
 
-        return Mono.just(new JwtAuthenticationToken(source,roles));
+        return Mono.just(new JwtAuthenticationToken(source, roles));
     }
 
-    private Collection<GrantedAuthority> extractAuthorities(Jwt jwt)
-    {
+    private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
 
-        if (jwt.getClaim("realm_access")!=null)
-        {
-            Map<String, Object> realmAccess=jwt.getClaim("realm_access");
-            ObjectMapper objectMapper=new ObjectMapper();
+        if (jwt.getClaim("realm_access") != null) {
+            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+            ObjectMapper objectMapper = new ObjectMapper();
 
-            TypeReference<ArrayList<String>> typeReference = new TypeReference<ArrayList<String>>() {};
+            TypeReference<ArrayList<String>> typeReference = new TypeReference<ArrayList<String>>() {
+            };
 
             ArrayList<String> keyCloakRoles = objectMapper.convertValue(realmAccess.get("roles"), typeReference);
 
-            List<GrantedAuthority> roles=new ArrayList<>();
+            List<GrantedAuthority> roles = new ArrayList<>();
 
             for (String keyCloakRole : keyCloakRoles) {
-                roles.add(new SimpleGrantedAuthority("ROLE_"+keyCloakRole));
+                roles.add(new SimpleGrantedAuthority("ROLE_" + keyCloakRole));
             }
 
             return roles;
@@ -49,7 +50,6 @@ public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticat
         }
 
         return new ArrayList<>();
-
 
 
     }

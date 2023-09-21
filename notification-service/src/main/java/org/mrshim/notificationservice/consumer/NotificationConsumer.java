@@ -15,6 +15,7 @@ public class NotificationConsumer {
 
 
 
+
     @KafkaListener(topics = "notificationTopic")
     public void handleNotification(OrderPlacedEvent orderKafkaResponseDto) {
 

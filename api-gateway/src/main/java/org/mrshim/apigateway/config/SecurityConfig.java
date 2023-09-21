@@ -24,7 +24,6 @@ public class SecurityConfig {
                 .authorizeExchange(authorizeExchangeSpec ->
                         authorizeExchangeSpec.pathMatchers("/eureka/**")
                                 .permitAll()
-                                .pathMatchers(HttpMethod.GET,"/menu").hasRole("ADMIN")
                                 .pathMatchers("/register")
                                 .permitAll()
                                 .pathMatchers("/login")

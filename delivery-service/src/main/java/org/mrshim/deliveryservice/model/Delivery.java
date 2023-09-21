@@ -18,10 +18,10 @@ public class Delivery {
     private Long id;
 
     @Column(name = "order_id")
-    private Long order_id;
+    private Long orderId;
 
     @Column(name = "courier_id")
-    private String courier_id;
+    private String courierId;
 
     @Column(name = "isDeliver")
     private boolean isDeliver;

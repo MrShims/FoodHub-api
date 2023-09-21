@@ -60,7 +60,7 @@ public class MenuController {
 
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<?> deleteDish(@PathVariable(required = true) String id) {
 
         menuService.deleteDish(id);
@@ -70,7 +70,7 @@ public class MenuController {
 
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("{id}")
     public ResponseEntity<?> editDish(@PathVariable(required = true) String id, @RequestBody(required = true) CreateDishRequestDto createDishRequestDto) {
         Dish dish = menuService.editDish(id, createDishRequestDto);
 
