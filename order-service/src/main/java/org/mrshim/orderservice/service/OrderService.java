@@ -51,8 +51,7 @@ public class OrderService {
     private String routingKey;
 
 
-    private boolean isInStockDishes(List<OrderLineDishesRequest> lineDishes)
-    {
+    private boolean isInStockDishes(List<OrderLineDishesRequest> lineDishes) {
         ServiceInstance serviceInstance = loadBalancerClient.choose("menu-service");
 
         JSONObject jsonObject = new JSONObject();
@@ -77,17 +76,14 @@ public class OrderService {
     }
 
 
-
-
-    private BigDecimal calculateSumOrder(List<OrderLineDishesRequest> lineDishes)
-    {
-        double a=0;
+    private BigDecimal calculateSumOrder(List<OrderLineDishesRequest> lineDishes) {
+        double a = 0;
 
         for (int i = 0; i < lineDishes.size(); i++) {
 
             OrderLineDishesRequest orderLineDishesRequest = lineDishes.get(i);
 
-           a+=orderLineDishesRequest.getPrice().doubleValue()*orderLineDishesRequest.getQuantity();
+            a += orderLineDishesRequest.getPrice().doubleValue() * orderLineDishesRequest.getQuantity();
 
         }
 
@@ -97,12 +93,12 @@ public class OrderService {
     }
 
 
-
     @Transactional
     public Long createOrder(CreateOrderRequest createOrderRequest) {
         Order order = new Order();
 
-        if (!isInStockDishes(createOrderRequest.getLineDishes())) throw new CreateOrderException("Ошибка формирования заказа");
+        if (!isInStockDishes(createOrderRequest.getLineDishes()))
+            throw new CreateOrderException("Ошибка формирования заказа");
 
 
         JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
@@ -136,17 +132,16 @@ public class OrderService {
 
         OrderPlacedEvent orderKafkaRequestDto = mapOrderToOrderKafkaRequest(save, userName, userEmail);
 
-       /* kafkaTemplate.send("notificationTopic",orderKafkaRequestDto);*/
+        // kafkaTemplate.send("notificationTopic",orderKafkaRequestDto);
 
         return save.getId();
 
 
     }
 
-    private OrderPlacedEvent mapOrderToOrderKafkaRequest(Order order, String name, String email)
-    {
+    private OrderPlacedEvent mapOrderToOrderKafkaRequest(Order order, String name, String email) {
 
-        OrderPlacedEvent orderKafkaRequestDto=new OrderPlacedEvent();
+        OrderPlacedEvent orderKafkaRequestDto = new OrderPlacedEvent();
         orderKafkaRequestDto.setId(order.getId());
         orderKafkaRequestDto.setUserEmail(email);
         orderKafkaRequestDto.setUserName(name);
@@ -156,13 +151,11 @@ public class OrderService {
         orderKafkaRequestDto.setOrderAmount(order.getOrderAmount());
 
 
-
         return orderKafkaRequestDto;
 
     }
 
-    public List<Order> getUserOderHistory()
-    {
+    public List<Order> getUserOderHistory() {
         JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 
         String userId = authentication.getToken().getClaim("sub");
@@ -173,10 +166,7 @@ public class OrderService {
         return allOrdersByUserId;
 
 
-
     }
-
-
 
 
     private List<OrderLineDish> mapToOrderList(List<OrderLineDishesRequest> orderLineDishesRequests) {
@@ -201,6 +191,7 @@ public class OrderService {
 
     }
 
+    
     public List<Order> getAllOrders() {
 
         return orderRepository.findAll();
@@ -236,35 +227,30 @@ public class OrderService {
 
     }
 
-    public void editStatusToOrder(EditStatusDto editStatusDto)
-    {
+    public void editStatusToOrder(EditStatusDto editStatusDto) {
         String status = editStatusDto.getStatus();
 
         Optional<Order> byId = orderRepository.findById(editStatusDto.getId());
 
-        if (byId.isPresent())
-        {
+        if (byId.isPresent()) {
             Order order = byId.get();
             order.setStatus(status);
             orderRepository.save(order);
 
-            RabbitMessageDto rabbitMessageDto=new RabbitMessageDto();
+            RabbitMessageDto rabbitMessageDto = new RabbitMessageDto();
             rabbitMessageDto.setId(order.getId());
             rabbitMessageDto.setDeliveryAddress(order.getDeliveryAddress());
 
 
             try {
                 String s = objectMapper.writeValueAsString(rabbitMessageDto);
-                rabbitTemplate.convertAndSend(exchange,routingKey,s);
+                rabbitTemplate.convertAndSend(exchange, routingKey, s);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
 
 
-
-        }
-
-        else throw new OrderNotFoundException("Заказ не найден");
+        } else throw new OrderNotFoundException("Заказ не найден");
 
     }
 
