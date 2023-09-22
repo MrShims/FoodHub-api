@@ -1,7 +1,9 @@
 package org.mrshim.transactionalservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stripe.model.Charge;
+import com.stripe.model.Token;
+import com.stripe.param.TokenCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.transactionalservice.dto.CurrencyResponse;
 import org.mrshim.transactionalservice.dto.GetOrderRequestDto;
@@ -10,12 +12,12 @@ import org.mrshim.transactionalservice.stripe.StripeClient;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -84,15 +86,32 @@ public class TransactionalService {
     }
 
 
-    public PaymentDto charge(Long id, String token) {
+    public String charge(Long id, String token) {
 
 
-        return null;
+        Mono<PaymentDto> order = getOrder(id, token);
+        PaymentDto block = order.block();
+
+        double v = block.getOrderAmount().doubleValue();
+
+        String usd = redisTemplate.opsForValue().get("USD");
+
+        double v1 = Double.parseDouble(usd);
+
+
+        double price = v/v1*10000;
+
+
+        try {
+            return stripeClient.chargeNewCard("tok_visa",price).toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
 
     }
 
-    private Mono<PaymentDto> getOrder(Long id) {
+    private Mono<PaymentDto> getOrder(Long id,String token) {
 
         ServiceInstance serviceInstance = loadBalancerClient.choose("order-service");
         GetOrderRequestDto getOrderRequestDto = new GetOrderRequestDto();
@@ -101,10 +120,13 @@ public class TransactionalService {
 
         String serviceUrl = "http://localhost" + ":" + serviceInstance.getPort();
 
-        return webClient.baseUrl(serviceUrl)
-                .build().get().uri("/order/"+id)
+       return  webClient.baseUrl(serviceUrl).defaultHeader("Authorization", token)
+                .build().get().uri("/order/" + id)
                 .retrieve()
                 .bodyToMono(PaymentDto.class);
+
+
+
 
 
     }

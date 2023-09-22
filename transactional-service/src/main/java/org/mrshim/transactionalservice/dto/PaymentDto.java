@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PaymentDto {
 
-    private BigDecimal amount;
+    private BigDecimal orderAmount;
 
 
 }

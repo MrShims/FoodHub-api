@@ -2,6 +2,7 @@ package org.mrshim.transactionalservice.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stripe.model.Charge;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.transactionalservice.dto.CurrencyResponse;
 import org.mrshim.transactionalservice.dto.PaymentDto;
@@ -12,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,12 +27,17 @@ public class TransactionalController {
 
 
 
-    @PostMapping("/charge")
-    public Mono<String> startTransactional(/*@RequestParam(name = "id") Long id, @RequestBody String token,*/ @RequestHeader("Authorization") String authToken) {
+    @PostMapping("/charge/{id}")
+    public Mono<String> startTransactional(@RequestHeader("Authorization") String authToken, @PathVariable Long id) {
 
-return Mono.just(authToken);
 
-      // return Mono.just(transactionalService.getCurrencyRate());
+        CompletableFuture<String> future=CompletableFuture.supplyAsync(()->
+
+                        transactionalService.charge(id,authToken)
+                );
+
+       return Mono.fromFuture(future);
+
 
     }
 

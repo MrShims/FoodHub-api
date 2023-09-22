@@ -10,16 +10,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 public class StripeClient {
 
     private final StripeConfig stripeConfig;
+
+    public StripeClient(StripeConfig stripeConfig){
+        this.stripeConfig = stripeConfig;
+        Stripe.apiKey  = stripeConfig.getSecretKey();
+    }
 
 
 
     public Charge chargeNewCard(String token, double amount) throws Exception {
 
-        Stripe.apiKey  = stripeConfig.getSecretKey();
+
+
+
+
+
 
         Map<String, Object> chargeParams = new HashMap<String, Object>();
         chargeParams.put("amount", (int)(amount));
