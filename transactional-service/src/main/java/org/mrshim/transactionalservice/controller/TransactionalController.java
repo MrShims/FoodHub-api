@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.mrshim.transactionalservice.dto.CurrencyResponse;
 import org.mrshim.transactionalservice.dto.PaymentDto;
 import org.mrshim.transactionalservice.service.TransactionalService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -28,11 +26,11 @@ public class TransactionalController {
 
 
     @PostMapping("/charge")
-    public Mono<String> startTransactional() {
+    public Mono<String> startTransactional(/*@RequestParam(name = "id") Long id, @RequestBody String token,*/ @RequestHeader("Authorization") String authToken) {
 
+return Mono.just(authToken);
 
-
-       return Mono.just(transactionalService.getCurrencyRate());
+      // return Mono.just(transactionalService.getCurrencyRate());
 
     }
 

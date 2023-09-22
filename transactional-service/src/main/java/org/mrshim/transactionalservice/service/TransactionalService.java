@@ -1,17 +1,21 @@
 package org.mrshim.transactionalservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.transactionalservice.dto.CurrencyResponse;
+import org.mrshim.transactionalservice.dto.GetOrderRequestDto;
 import org.mrshim.transactionalservice.dto.PaymentDto;
+import org.mrshim.transactionalservice.stripe.StripeClient;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -23,6 +27,11 @@ public class TransactionalService {
     private final ObjectMapper objectMapper;
 
     private final RedisTemplate<String, String> redisTemplate;
+
+    private final LoadBalancerClient loadBalancerClient;
+
+    private final StripeClient stripeClient;
+
 
     private Mono<String> getCurrencyRates() {
         return webClient.baseUrl("https://www.cbr-xml-daily.ru/daily_json.js")
@@ -59,7 +68,7 @@ public class TransactionalService {
 
 
         assert currencyRates != null;
-        redisTemplate.opsForValue().set("USD",currencyRates);
+        redisTemplate.opsForValue().set("USD", currencyRates);
 
 
     }
@@ -79,6 +88,23 @@ public class TransactionalService {
 
 
         return null;
+
+
+    }
+
+    private Mono<PaymentDto> getOrder(Long id) {
+
+        ServiceInstance serviceInstance = loadBalancerClient.choose("order-service");
+        GetOrderRequestDto getOrderRequestDto = new GetOrderRequestDto();
+        getOrderRequestDto.setOrderId(id);
+
+
+        String serviceUrl = "http://localhost" + ":" + serviceInstance.getPort();
+
+        return webClient.baseUrl(serviceUrl)
+                .build().get().uri("/order/"+id)
+                .retrieve()
+                .bodyToMono(PaymentDto.class);
 
 
     }

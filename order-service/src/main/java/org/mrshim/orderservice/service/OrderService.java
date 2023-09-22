@@ -3,6 +3,7 @@ package org.mrshim.orderservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.hc.core5.concurrent.CompletedFuture;
 import org.aspectj.weaver.ast.Or;
 import org.json.JSONObject;
 import org.mrshim.orderservice.dto.*;
@@ -58,6 +59,7 @@ public class OrderService {
         jsonObject.put("lineDishes", lineDishes);
 
         String jsonString = jsonObject.toString();
+
 
 
         String serviceUrl = "http://localhost" + ":" + serviceInstance.getPort();
