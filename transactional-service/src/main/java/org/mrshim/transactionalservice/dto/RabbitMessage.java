@@ -1,4 +1,4 @@
-package org.mrshim.orderservice.dto;
+package org.mrshim.transactionalservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EditStatusDto {
+public class RabbitMessage {
 
-    private String status;
+    private Long id;
 }

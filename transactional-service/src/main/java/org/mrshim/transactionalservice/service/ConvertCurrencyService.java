@@ -1,5 +1,9 @@
 package org.mrshim.transactionalservice.service;
 
-import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+
+public interface ConvertCurrencyService {
 
 
+    double ConvertCurrency(BigDecimal orderAmount);
+}

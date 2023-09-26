@@ -9,9 +9,17 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentDto {
+public class OrderResponseListDishes {
 
-    private BigDecimal orderAmount;
+
+    private Long id;
+
+    private String name;
+
+    private int quantity;
+
+    private BigDecimal price;
+
 
 
 }

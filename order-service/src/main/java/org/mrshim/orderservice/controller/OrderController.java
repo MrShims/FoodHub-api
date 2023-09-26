@@ -63,10 +63,10 @@ public class OrderController
 
     }
 
-    @PatchMapping()
-    public ResponseEntity<?> setStatusToOrder(@RequestBody EditStatusDto editStatusDto)
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> setStatusToOrder(@PathVariable Long id, @RequestBody EditStatusDto editStatusDto)
     {
-        orderService.editStatusToOrder(editStatusDto);
+        orderService.editStatusToOrder(editStatusDto,id);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

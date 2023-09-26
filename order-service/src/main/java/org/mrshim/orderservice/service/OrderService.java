@@ -3,8 +3,6 @@ package org.mrshim.orderservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.hc.core5.concurrent.CompletedFuture;
-import org.aspectj.weaver.ast.Or;
 import org.json.JSONObject;
 import org.mrshim.orderservice.dto.*;
 import org.mrshim.orderservice.exception.CreateOrderException;
@@ -12,12 +10,12 @@ import org.mrshim.orderservice.exception.OrderNotFoundException;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.model.OrderLineDish;
 import org.mrshim.orderservice.repository.OrderRepository;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -40,8 +38,6 @@ public class OrderService {
 
     private final LoadBalancerClient loadBalancerClient;
 
-    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
-
     private final RabbitTemplate rabbitTemplate;
 
     private final ObjectMapper objectMapper;
@@ -59,7 +55,6 @@ public class OrderService {
         jsonObject.put("lineDishes", lineDishes);
 
         String jsonString = jsonObject.toString();
-
 
 
         String serviceUrl = "http://localhost" + ":" + serviceInstance.getPort();
@@ -107,10 +102,6 @@ public class OrderService {
 
         Object userId = authentication.getToken().getClaim("sub");
 
-        String userEmail = authentication.getToken().getClaim("email");
-
-        String userName = authentication.getToken().getClaim("name");
-
 
         List<OrderLineDishesRequest> lineDishes = createOrderRequest.getLineDishes();
 
@@ -130,11 +121,6 @@ public class OrderService {
 
 
         Order save = orderRepository.save(order);
-
-
-        OrderPlacedEvent orderKafkaRequestDto = mapOrderToOrderKafkaRequest(save, userName, userEmail);
-
-        // kafkaTemplate.send("notificationTopic",orderKafkaRequestDto);
 
         return save.getId();
 
@@ -193,7 +179,7 @@ public class OrderService {
 
     }
 
-    
+
     public List<Order> getAllOrders() {
 
         return orderRepository.findAll();
@@ -229,26 +215,56 @@ public class OrderService {
 
     }
 
-    public void editStatusToOrder(EditStatusDto editStatusDto) {
+
+    @RabbitListener(queues = "payment")
+    public void consume(String message) {
+
+        try {
+            PaymentRabbitMessage paymentRabbitMessage = objectMapper.readValue(message, PaymentRabbitMessage.class);
+
+
+            Optional<Order> byId = orderRepository.findById(paymentRabbitMessage.getId());
+            if (byId.isPresent()) {
+
+                Order order = byId.get();
+
+                order.setStatus("Оплачен");
+                orderRepository.save(order);
+
+
+            }
+
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    public void editStatusToOrder(EditStatusDto editStatusDto, Long id) {
         String status = editStatusDto.getStatus();
 
-        Optional<Order> byId = orderRepository.findById(editStatusDto.getId());
+        Optional<Order> byId = orderRepository.findById(id);
 
         if (byId.isPresent()) {
             Order order = byId.get();
             order.setStatus(status);
             orderRepository.save(order);
 
-            RabbitMessageDto rabbitMessageDto = new RabbitMessageDto();
-            rabbitMessageDto.setId(order.getId());
-            rabbitMessageDto.setDeliveryAddress(order.getDeliveryAddress());
+
+            if (editStatusDto.getStatus().equals("Готовится")) {
+                RabbitMessageDto rabbitMessageDto = new RabbitMessageDto();
+                rabbitMessageDto.setId(order.getId());
+                rabbitMessageDto.setDeliveryAddress(order.getDeliveryAddress());
 
 
-            try {
-                String s = objectMapper.writeValueAsString(rabbitMessageDto);
-                rabbitTemplate.convertAndSend(exchange, routingKey, s);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                try {
+                    String s = objectMapper.writeValueAsString(rabbitMessageDto);
+                    rabbitTemplate.convertAndSend(exchange, routingKey, s);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
 

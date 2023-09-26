@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.model.Charge;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.transactionalservice.dto.CurrencyResponse;
-import org.mrshim.transactionalservice.dto.PaymentDto;
+import org.mrshim.transactionalservice.dto.PaymentRequest;
 import org.mrshim.transactionalservice.service.TransactionalService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,13 +27,13 @@ public class TransactionalController {
 
 
 
-    @PostMapping("/charge/{id}")
-    public Mono<String> startTransactional(@RequestHeader("Authorization") String authToken, @PathVariable Long id) {
+    @PostMapping("/charge")
+    public Mono<String> startTransactional(@RequestHeader("Authorization") String authToken, @RequestBody PaymentRequest paymentRequest) {
 
 
         CompletableFuture<String> future=CompletableFuture.supplyAsync(()->
 
-                        transactionalService.charge(id,authToken)
+                        transactionalService.charge(paymentRequest,authToken)
                 );
 
        return Mono.fromFuture(future);
