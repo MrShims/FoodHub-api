@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.3
     container_name: keycloak
@@ -51,3 +52,63 @@ services:
       - ./redis:/data
     environment:
       - REDIS_PASSWORD=MrShim
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+      image: grafana/grafana-oss
+      container_name: grafana
+      restart: always
+      ports:
+        - "3000:3000"
+      links:
+        - prometheus:prometheus
+      volumes:
+        - ./grafana:/var/lib/grafana
+      environment:
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=password
+  mongo:
+    container_name: mongo
+    image: mongo:4.4.14-rc0-focal
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+    volumes:
+      - ./mongo-data:/data/db
+  discovery-server:
+    build: ./discovery-service
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8181:8080"
+    expose:
+      - "8181"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+    depends_on:
+      - discovery-server
+      - keycloak
+  menu-service:
+    container_name: menu-service
+    build: ./menu-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongo
+      - discovery-server
+      - api-gateway

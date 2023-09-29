@@ -8,9 +8,11 @@ import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequiredArgsConstructor
@@ -52,6 +54,18 @@ public class OrderController
         return new ResponseEntity<>(userOderHistory,HttpStatus.OK);
 
     }
+
+    @GetMapping("/available")
+    public ResponseEntity<?> getAvailableOrderList()
+    {
+
+        List<Order> availableOrderList = orderService.getAvailableOrderList();
+
+        return new ResponseEntity<>(availableOrderList,HttpStatus.OK);
+
+
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getOrderById(@PathVariable Long id)

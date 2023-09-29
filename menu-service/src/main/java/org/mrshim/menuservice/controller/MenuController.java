@@ -43,6 +43,7 @@ public class MenuController {
 
     }
 
+
     @GetMapping
     public ResponseEntity<?> getAllDishes() {
         List<Dish> allDishes = menuService.getAllDishes();

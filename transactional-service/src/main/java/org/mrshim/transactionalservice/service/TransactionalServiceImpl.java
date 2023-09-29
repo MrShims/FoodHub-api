@@ -14,6 +14,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -34,6 +35,7 @@ public class TransactionalServiceImpl implements TransactionalService {
     private String exchange;
 
     @Value("${rabbitmq.routing.key}")
+
     private String routingKey;
 
     public String charge(PaymentRequest paymentRequest, String token) {

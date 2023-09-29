@@ -1,6 +1,7 @@
 package org.mrshim.menuservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
 import org.mrshim.menuservice.model.Dish;
@@ -162,6 +163,7 @@ class MenuControllerTest {
         ingredients.add("Cucumber");
         createDishRequestDto.setIngredients(ingredients);
         createDishRequestDto.setDescription("Fresh and healthy salad with a mix of vegetables dressed with olive oil.");
+
 
         return createDishRequestDto;
 

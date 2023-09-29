@@ -14,6 +14,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +39,8 @@ public class OrderService {
 
     private final LoadBalancerClient loadBalancerClient;
 
+    private final DiscoveryClient discoveryClient;
+
     private final RabbitTemplate rabbitTemplate;
 
     private final ObjectMapper objectMapper;
@@ -57,7 +60,7 @@ public class OrderService {
         String jsonString = jsonObject.toString();
 
 
-        String serviceUrl = "http://localhost" + ":" + serviceInstance.getPort();
+        String serviceUrl = "http://menu-service";
 
         Boolean block = webClient.baseUrl(serviceUrl)
                 .build().post().uri("/menu/stock")
@@ -273,4 +276,12 @@ public class OrderService {
     }
 
 
+    public List<Order> getAvailableOrderList() {
+
+        List<Order> AvailableOrderList = orderRepository.findByStatus("Оплачен");
+
+        return AvailableOrderList;
+
+
+    }
 }

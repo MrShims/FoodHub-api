@@ -33,7 +33,7 @@ public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticat
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             ObjectMapper objectMapper = new ObjectMapper();
 
-            TypeReference<ArrayList<String>> typeReference = new TypeReference<ArrayList<String>>() {
+            TypeReference<ArrayList<String>> typeReference = new TypeReference<>() {
             };
 
             ArrayList<String> keyCloakRoles = objectMapper.convertValue(realmAccess.get("roles"), typeReference);
