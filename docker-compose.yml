@@ -4,12 +4,12 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.3
     container_name: keycloak
-    command: ["start-dev", "--import-realm"]
+    command: ["start-dev","--import-realm"]
     ports:
       - "8888:8080"
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN_PASSWORD: MrShim
     volumes:
       - ./realms/:/opt/keycloak/data/import/
   zookeeper:
@@ -52,14 +52,32 @@ services:
       - ./redis:/data
     environment:
       - REDIS_PASSWORD=MrShim
+  tempo:
+    image: grafana/tempo:2.2.2
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo/tempo.yml:/etc/tempo.yaml:ro
+      - ./tempo/tempo-data:/tmp/tempo
+    ports:
+      - "3110:3100"  # Tempo
+      - "9411:9411" # zipkin
+  loki:
+    image: grafana/loki:main
+    container_name: loki
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
+    ports:
+      - "3100:3100"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    restart: always
+    command:
+      - --enable-feature=exemplar-storage
+      - --config.file=/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
   grafana:
       image: grafana/grafana-oss
       container_name: grafana
@@ -69,10 +87,11 @@ services:
       links:
         - prometheus:prometheus
       volumes:
-        - ./grafana:/var/lib/grafana
+        - ./grafana:/etc/grafana/provisioning/datasources:ro
       environment:
-        - GF_SECURITY_ADMIN_USER=admin
-        - GF_SECURITY_ADMIN_PASSWORD=password
+        - GF_AUTH_ANONYMOUS_ENABLED=true
+        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+        - GF_AUTH_DISABLE_LOGIN_FORM=true
   mongo:
     container_name: mongo
     image: mongo:4.4.14-rc0-focal
@@ -86,6 +105,8 @@ services:
   discovery-server:
     build: ./discovery-service
     container_name: discovery-server
+    deploy:
+      replicas: 0
     ports:
       - "8761:8761"
     environment:
@@ -97,6 +118,8 @@ services:
       - "8181:8080"
     expose:
       - "8181"
+    deploy:
+      replicas: 0
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
@@ -108,6 +131,8 @@ services:
     build: ./menu-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    deploy:
+      replicas: 0
     depends_on:
       - mongo
       - discovery-server

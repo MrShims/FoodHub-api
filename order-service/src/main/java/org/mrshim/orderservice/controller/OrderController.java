@@ -1,6 +1,7 @@
 package org.mrshim.orderservice.controller;
 
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.orderservice.dto.CreateOrderRequest;
 import org.mrshim.orderservice.dto.EditStatusDto;
@@ -8,15 +9,13 @@ import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/order")
+@SecurityRequirement(name = "bearerAuth")
 public class OrderController
 {
 

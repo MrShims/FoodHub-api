@@ -9,3 +9,6 @@ scrape_configs:
       - targets: ['menu-service:8080']
         labels:
           application: 'Menu Service Application'
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: [ 'prometheus:9090' ]

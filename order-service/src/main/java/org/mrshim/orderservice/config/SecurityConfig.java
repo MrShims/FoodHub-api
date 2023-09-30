@@ -20,7 +20,21 @@ public class SecurityConfig {
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(exchange ->
-                        exchange.anyRequest().authenticated())
+                        exchange
+                                .requestMatchers(
+                                        "/swagger-ui.html/**",
+                                        "/swagger-ui/**",
+                                        "/webjars/**",
+                                        "/configuration/ui",
+                                        "/configuration/security",
+                                        "/swagger-resources/**",
+                                        "/swagger-resources",
+                                        "/api/v1/auth/**",
+                                        "/v2/api-docs",
+                                        "/v3/api-docs",
+                                        "/v3/api-docs/**")
+                                .permitAll()
+                                .anyRequest().authenticated())
                 .oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer ->
                         httpSecurityOAuth2ResourceServerConfigurer.jwt(Customizer.withDefaults())
                 );

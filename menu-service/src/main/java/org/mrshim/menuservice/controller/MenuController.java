@@ -3,6 +3,7 @@ package org.mrshim.menuservice.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
 import org.mrshim.menuservice.dto.RequestListStockDto;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/menu")
 @RequiredArgsConstructor
+@Slf4j
 public class MenuController {
 
     private final MenuService menuService;
@@ -46,6 +48,8 @@ public class MenuController {
 
     @GetMapping
     public ResponseEntity<?> getAllDishes() {
+
+        log.info("Checking get method");
         List<Dish> allDishes = menuService.getAllDishes();
 
         return new ResponseEntity<>(allDishes, HttpStatus.OK);

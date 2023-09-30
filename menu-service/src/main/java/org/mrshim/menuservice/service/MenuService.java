@@ -1,5 +1,6 @@
 package org.mrshim.menuservice.service;
 
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
 import org.mrshim.menuservice.dto.RequestListStockDto;
@@ -75,6 +76,9 @@ public class MenuService {
 
     }
 
+    @Observed(name = "user.name",
+            contextualName = "getting-user-name",
+            lowCardinalityKeyValues = {"userType", "userType2"})
     public List<Dish> getAllDishes()
     {
 
