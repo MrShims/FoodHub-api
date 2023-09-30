@@ -6,6 +6,9 @@ import io.micrometer.observation.aop.ObservedAspect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Конфиг для @Observed
+ */
 @Configuration(proxyBeanMethods = false)
 public class ObservationConfig {
 
@@ -13,7 +16,6 @@ public class ObservationConfig {
     ObservedAspect observedAspect(ObservationRegistry observationRegistry) {
         return new ObservedAspect(observationRegistry);
     }
-
 
 
 }

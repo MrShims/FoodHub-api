@@ -1,6 +1,7 @@
 package org.mrshim.menuservice.controller;
 
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,7 @@ public class MenuController {
     }
 
     @GetMapping("/{id}")
+    @Observed(name = "Controller Method getDish")
     public ResponseEntity<?> getDish(@PathVariable String id) {
         Dish dish = menuService.getDish(id);
 

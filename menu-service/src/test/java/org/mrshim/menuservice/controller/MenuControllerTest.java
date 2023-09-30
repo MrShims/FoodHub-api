@@ -1,7 +1,6 @@
 package org.mrshim.menuservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mrshim.menuservice.dto.CreateDishRequestDto;
 import org.mrshim.menuservice.model.Dish;
@@ -89,14 +88,12 @@ class MenuControllerTest {
     public Dish createDish() {
 
 
-        Dish dish = Dish.builder()
+        return Dish.builder()
                 .name("Burger")
                 .price(new BigDecimal(650))
                 .description("Best Burger")
                 .ingredients(List.of("Tomato", "Cheese"))
                 .build();
-
-        return dish;
 
 
     }

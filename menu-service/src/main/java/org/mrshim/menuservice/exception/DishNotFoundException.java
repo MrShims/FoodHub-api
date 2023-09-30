@@ -6,6 +6,9 @@ import lombok.EqualsAndHashCode;
 import java.util.Date;
 
 
+/**
+ * Класс Exception если блюдо не найдено
+ */
 @Data
 public class DishNotFoundException extends RuntimeException {
 
