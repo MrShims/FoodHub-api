@@ -8,6 +8,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Observed
 public interface MenuRepository extends MongoRepository<Dish,String> {
-
-
 }
