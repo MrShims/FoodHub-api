@@ -11,8 +11,6 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
                 description = "OpenApi documentation for Order-service",
                 version = "1.0"
         )
-
-
 )
 @SecurityScheme(
         name = "bearerAuth",

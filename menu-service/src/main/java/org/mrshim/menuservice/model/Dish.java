@@ -42,10 +42,4 @@ public class Dish {
      * Описание блюда
      */
     private String description;
-
-
-
-
-
-
 }

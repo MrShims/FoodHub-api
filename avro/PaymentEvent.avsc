@@ -1,0 +1,1 @@
+{"type":"record","name":"PaymentEvent","namespace":"org.mrshim.foodhub","fields":[{"name":"id","type":"long"}]}

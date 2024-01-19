@@ -10,16 +10,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponseListDishes {
-
-
     private Long id;
-
     private String name;
-
-    private int quantity;
-
+    private Integer quantity;
     private BigDecimal price;
-
-
-
 }

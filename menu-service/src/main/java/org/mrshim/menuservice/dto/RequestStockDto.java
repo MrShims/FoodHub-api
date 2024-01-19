@@ -13,23 +13,16 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestStockDto {
-
-
     /**
      * Название блюда
      */
     private String name;
-
     /**
      * Количество
      */
     private int quantity;
-
     /**
      * Цена
      */
     private BigDecimal price;
-
-
-
 }

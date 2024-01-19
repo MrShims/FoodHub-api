@@ -1,16 +1,13 @@
 package org.mrshim.orderservice.dto;
 
-import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.mrshim.orderservice.model.OrderLineDish;
+import org.mrshim.orderservice.enums.PaymentTypeEnum;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,16 +15,11 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CreateOrderRequest {
-
-
-
+    @NotNull
     private List<OrderLineDishesRequest> lineDishes;
-
+    @NotBlank
     private String deliveryAddress;
-
-    private String paymentMethod;
-
+    private PaymentTypeEnum paymentMethod;
+    @NotBlank
     private String contact;
-
-
 }

@@ -20,39 +20,22 @@ import java.util.Map;
 public class JwtAuthConverter implements Converter<Jwt, Mono<AbstractAuthenticationToken>> {
     @Override
     public Mono<AbstractAuthenticationToken> convert(Jwt source) {
-
         Collection<GrantedAuthority> roles = extractAuthorities(source);
-
-
         return Mono.just(new JwtAuthenticationToken(source, roles));
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
-
         if (jwt.getClaim("realm_access") != null) {
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             ObjectMapper objectMapper = new ObjectMapper();
-
-            TypeReference<ArrayList<String>> typeReference = new TypeReference<>() {
-            };
-
+            TypeReference<ArrayList<String>> typeReference = new TypeReference<>() {};
             ArrayList<String> keyCloakRoles = objectMapper.convertValue(realmAccess.get("roles"), typeReference);
-
             List<GrantedAuthority> roles = new ArrayList<>();
-
             for (String keyCloakRole : keyCloakRoles) {
                 roles.add(new SimpleGrantedAuthority("ROLE_" + keyCloakRole));
             }
-
             return roles;
-
-
         }
-
         return new ArrayList<>();
-
-
     }
-
-
 }

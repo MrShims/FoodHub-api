@@ -21,37 +21,24 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     @Override
     public AbstractAuthenticationToken convert(Jwt source) {
-
         Collection<GrantedAuthority> roles = extractAuthorities(source);
-
-
         return new JwtAuthenticationToken(source, roles);
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
-
         if (jwt.getClaim("realm_access") != null) {
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             ObjectMapper objectMapper = new ObjectMapper();
-
             TypeReference<ArrayList<String>> typeReference = new TypeReference<>() {
             };
-
             ArrayList<String> keyCloakRoles = objectMapper.convertValue(realmAccess.get("roles"), typeReference);
-
             List<GrantedAuthority> roles = new ArrayList<>();
-
             for (String keyCloakRole : keyCloakRoles) {
                 roles.add(new SimpleGrantedAuthority("ROLE_" + keyCloakRole.toUpperCase()));
             }
 
             return roles;
-
-
         }
-
         return new ArrayList<>();
-
-
     }
 }

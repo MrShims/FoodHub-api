@@ -14,33 +14,21 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-   private final JwtAuthConverter jwtAuthConverter;
+    private final JwtAuthConverter jwtAuthConverter;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity security) {
-        security
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-
+        security.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(authorizeExchangeSpec ->
-
-                        authorizeExchangeSpec.anyExchange().permitAll()
-/*                        authorizeExchangeSpec.pathMatchers("/eureka/**")
+                        authorizeExchangeSpec.pathMatchers("/eureka/**")
                                 .permitAll()
                                 .pathMatchers("/register")
                                 .permitAll()
                                 .pathMatchers("/login")
                                 .permitAll()
-                                .anyExchange().authenticated()*/
-
-
-                )
+                                .anyExchange().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerSpec ->
-                        oAuth2ResourceServerSpec.jwt(configure->configure.jwtAuthenticationConverter(jwtAuthConverter)));
-
-
+                        oAuth2ResourceServerSpec.jwt(configure -> configure.jwtAuthenticationConverter(jwtAuthConverter)));
         return security.build();
-
     }
-
-
 }

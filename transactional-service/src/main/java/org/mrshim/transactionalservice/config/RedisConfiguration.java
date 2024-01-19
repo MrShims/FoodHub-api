@@ -10,7 +10,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfiguration {
 
-
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory();
@@ -24,10 +23,4 @@ public class RedisConfiguration {
         template.setValueSerializer(new StringRedisSerializer());
         return template;
     }
-
-
-
-
-
-
 }

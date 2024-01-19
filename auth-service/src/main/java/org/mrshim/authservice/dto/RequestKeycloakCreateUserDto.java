@@ -11,28 +11,18 @@ import java.util.List;
 
 public class RequestKeycloakCreateUserDto {
 
-
     private String username;
-
     private String firstName;
-
     private String lastName;
-
     private String email;
-
-
     private boolean enabled;
     private boolean emailVerified;
-
-
     private List<CredentialsDto> credentials;
-
 
     public RequestKeycloakCreateUserDto()
     {
         this.enabled = true;
         this.emailVerified = false;
-
     }
 
     public RequestKeycloakCreateUserDto(String username, String firstName, String lastName, String email, List<CredentialsDto> credentials) {
@@ -44,8 +34,4 @@ public class RequestKeycloakCreateUserDto {
         this.enabled = true;
         this.emailVerified = false;
     }
-
-
-
-
 }

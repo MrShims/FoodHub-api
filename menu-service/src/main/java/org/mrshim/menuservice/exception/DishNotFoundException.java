@@ -1,7 +1,6 @@
 package org.mrshim.menuservice.exception;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
@@ -17,9 +16,7 @@ public class DishNotFoundException extends RuntimeException {
 
     public DishNotFoundException(String s) {
 
-        this.message=s;
-        this.timestamp=new Date();
+        this.message = s;
+        this.timestamp = new Date();
     }
-
-
 }

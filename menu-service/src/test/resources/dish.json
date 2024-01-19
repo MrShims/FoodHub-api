@@ -1,0 +1,6 @@
+{
+  "name": "Burger",
+  "price": 650,
+  "ingredients": ["Tomato", "Cheese"],
+  "description": "Best Burger"
+}

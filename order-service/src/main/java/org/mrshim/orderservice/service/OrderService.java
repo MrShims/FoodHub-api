@@ -1,18 +1,18 @@
 package org.mrshim.orderservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.mrshim.orderservice.dto.*;
+import org.mrshim.orderservice.enums.OrderStatusEnum;
 import org.mrshim.orderservice.exception.CreateOrderException;
 import org.mrshim.orderservice.exception.OrderNotFoundException;
+import org.mrshim.orderservice.mappers.OrderMapper;
 import org.mrshim.orderservice.model.Order;
 import org.mrshim.orderservice.model.OrderLineDish;
+import org.mrshim.orderservice.model.OrderStatus;
 import org.mrshim.orderservice.repository.OrderRepository;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
+import org.mrshim.orderservice.repository.OrderStatusRepository;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,18 +39,10 @@ public class OrderService {
     private final WebClient.Builder webClient;
 
     private final LoadBalancerClient loadBalancerClient;
+    private final OrderMapper orderMapper;
 
     private final DiscoveryClient discoveryClient;
-
-    private final RabbitTemplate rabbitTemplate;
-
-    private final ObjectMapper objectMapper;
-    @Value("${rabbitmq.exchange}")
-    private String exchange;
-
-    @Value("${rabbitmq.routing.key}")
-    private String routingKey;
-
+    private final OrderStatusRepository orderStatusRepository;
 
     private boolean isInStockDishes(List<OrderLineDishesRequest> lineDishes) {
         ServiceInstance serviceInstance = loadBalancerClient.choose("menu-service");
@@ -58,11 +51,13 @@ public class OrderService {
         jsonObject.put("lineDishes", lineDishes);
 
         String jsonString = jsonObject.toString();
-
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        String token = authentication.getToken().getTokenValue();
 
         String serviceUrl = "http://menu-service";
 
         Boolean block = webClient.baseUrl(serviceUrl)
+                .defaultHeader("Authorization", "Bearer " + token)
                 .build().post().uri("/menu/stock")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonString)
@@ -86,33 +81,24 @@ public class OrderService {
             a += orderLineDishesRequest.getPrice().doubleValue() * orderLineDishesRequest.getQuantity();
 
         }
-
         return new BigDecimal(a);
-
-
     }
 
-
-    @Transactional
     public Long createOrder(CreateOrderRequest createOrderRequest) {
         Order order = new Order();
 
         if (!isInStockDishes(createOrderRequest.getLineDishes()))
             throw new CreateOrderException("Ошибка формирования заказа");
 
-
         JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-
         Object userId = authentication.getToken().getClaim("sub");
-
-
         List<OrderLineDishesRequest> lineDishes = createOrderRequest.getLineDishes();
-
         BigDecimal sumOrder = calculateSumOrder(lineDishes);
+        Optional<OrderStatus> byStatusName = orderStatusRepository.findByStatusName(OrderStatusEnum.ACCEPT);
+        Order order1 = orderMapper.mapToOrder(createOrderRequest, sumOrder, authentication,byStatusName.get());
 
 
-        order.setContact(createOrderRequest.getContact());
-
+/*        order.setContact(createOrderRequest.getContact());
         order.setStatus("Принят");
         order.setCreationDate(LocalDateTime.now());
         order.setUpdateDate(LocalDateTime.now());
@@ -120,66 +106,28 @@ public class OrderService {
         order.setOrderAmount(sumOrder);
         order.setDeliveryAddress(createOrderRequest.getDeliveryAddress());
         order.setLineDishes(mapToOrderList(createOrderRequest.getLineDishes()));
-        order.setPaymentMethod(createOrderRequest.getPaymentMethod());
-
-
-        Order save = orderRepository.save(order);
-
+        order.setPaymentMethod(createOrderRequest.getPaymentMethod());*/
+        Order save = orderRepository.save(order1);
         return save.getId();
-
-
     }
-
-    private OrderPlacedEvent mapOrderToOrderKafkaRequest(Order order, String name, String email) {
-
-        OrderPlacedEvent orderKafkaRequestDto = new OrderPlacedEvent();
-        orderKafkaRequestDto.setId(order.getId());
-        orderKafkaRequestDto.setUserEmail(email);
-        orderKafkaRequestDto.setUserName(name);
-        orderKafkaRequestDto.setDeliveryAddress(orderKafkaRequestDto.getDeliveryAddress());
-        orderKafkaRequestDto.setCreationDate(order.getCreationDate());
-        orderKafkaRequestDto.setLineDishes(order.getLineDishes());
-        orderKafkaRequestDto.setOrderAmount(order.getOrderAmount());
-
-
-        return orderKafkaRequestDto;
-
-    }
-
-    public List<Order> getUserOderHistory() {
-        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-
-        String userId = authentication.getToken().getClaim("sub");
-
-        List<Order> allOrdersByUserId = orderRepository.findAllByUserId(userId);
-
-
-        return allOrdersByUserId;
-
-
-    }
-
-
-    private List<OrderLineDish> mapToOrderList(List<OrderLineDishesRequest> orderLineDishesRequests) {
+/*    private List<OrderLineDish> mapToOrderList(List<OrderLineDishesRequest> orderLineDishesRequests) {
         ArrayList<OrderLineDish> orderLineDishArrayList = new ArrayList<>();
-
         for (int i = 0; i < orderLineDishesRequests.size(); i++) {
-
             OrderLineDishesRequest orderLineDishesRequest = orderLineDishesRequests.get(i);
-
             OrderLineDish orderLineDish = new OrderLineDish();
             orderLineDish.setQuantity(orderLineDishesRequest.getQuantity());
             orderLineDish.setName(orderLineDishesRequest.getName());
             orderLineDish.setPrice(orderLineDishesRequest.getPrice());
-
             orderLineDishArrayList.add(orderLineDish);
-
-
         }
-
         return orderLineDishArrayList;
+    }*/
 
-
+    public List<Order> getUserOderHistory() {
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getToken().getClaim("sub");
+        List<Order> allOrdersByUserId = orderRepository.findAllByUserId(userId);
+        return allOrdersByUserId;
     }
 
 
@@ -208,7 +156,7 @@ public class OrderService {
 
             Order order = byId.get();
 
-            order.setStatus("Отменен");
+            //order.setStatus("Отменен");
 
             orderRepository.save(order);
 
@@ -218,50 +166,17 @@ public class OrderService {
 
     }
 
-
-    @RabbitListener(queues = "payment")
-    public void consume(String message) {
-
-        try {
-            PaymentRabbitMessage paymentRabbitMessage = objectMapper.readValue(message, PaymentRabbitMessage.class);
-
-
-            Optional<Order> byId = orderRepository.findById(paymentRabbitMessage.getId());
-            if (byId.isPresent()) {
-
-                Order order = byId.get();
-
-                order.setStatus("Оплачен");
-                orderRepository.save(order);
-
-
-            }
-
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
-
-    }
-
-    public void editStatusToOrder(EditStatusDto editStatusDto, Long id) {
+/*    public void editStatusToOrder(EditStatusDto editStatusDto, Long id) {
         String status = editStatusDto.getStatus();
-
         Optional<Order> byId = orderRepository.findById(id);
-
         if (byId.isPresent()) {
             Order order = byId.get();
             order.setStatus(status);
             orderRepository.save(order);
-
-
             if (editStatusDto.getStatus().equals("Готовится")) {
                 RabbitMessageDto rabbitMessageDto = new RabbitMessageDto();
                 rabbitMessageDto.setId(order.getId());
                 rabbitMessageDto.setDeliveryAddress(order.getDeliveryAddress());
-
-
                 try {
                     String s = objectMapper.writeValueAsString(rabbitMessageDto);
                     rabbitTemplate.convertAndSend(exchange, routingKey, s);
@@ -273,15 +188,32 @@ public class OrderService {
 
         } else throw new OrderNotFoundException("Заказ не найден");
 
+    }*/
+
+
+    public List<AvailableOrderResponseDTO> getAvailableOrderList() {
+
+        return null;
+       // List<Order> AvailableOrderList = orderRepository.findByStatus("Оплачен");
+        //return AvailableOrderList.stream().map(this::mapToAvailableResponseOrder).collect(Collectors.toList());
+    }
+
+    public AvailableOrderResponseDTO mapToAvailableResponseOrder(Order order) {
+
+        AvailableOrderResponseDTO availableOrderResponseDTO = new AvailableOrderResponseDTO();
+        availableOrderResponseDTO.setId(order.getId());
+        availableOrderResponseDTO.setUpdateDate(order.getUpdateDate());
+        List<AvailableOrderResponseListDTO> list = new ArrayList<>();
+        List<OrderLineDish> lineDishes = order.getLineDishes();
+        for (OrderLineDish lineDish : lineDishes) {
+            AvailableOrderResponseListDTO availableOrderResponseListDTO = new AvailableOrderResponseListDTO();
+            availableOrderResponseListDTO.setName(lineDish.getName());
+            availableOrderResponseListDTO.setQuantity(lineDish.getQuantity());
+            list.add(availableOrderResponseListDTO);
+        }
+        availableOrderResponseDTO.setLineDishes(list);
+        return availableOrderResponseDTO;
     }
 
 
-    public List<Order> getAvailableOrderList() {
-
-        List<Order> AvailableOrderList = orderRepository.findByStatus("Оплачен");
-
-        return AvailableOrderList;
-
-
-    }
 }

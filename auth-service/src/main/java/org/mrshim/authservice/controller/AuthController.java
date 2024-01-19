@@ -17,33 +17,19 @@ public class AuthController {
 
     private final AuthService authService;
 
-
     @PostMapping("/register")
     public ResponseEntity<?> loginUser(@RequestBody RequestCreateUserDto requestCreateUserDto) {
-
         if (!requestCreateUserDto.getPassword().equals(requestCreateUserDto.getConfirmPassword()))
         {
             return new ResponseEntity<>("Пароли не совпадают",HttpStatus.BAD_REQUEST);
         }
-
         authService.createNewUser(requestCreateUserDto);
-
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-
-
     @PostMapping("/login")
     public ResponseEntity<?> createNewUser(@RequestBody RequestLoginDto requestLoginDto) {
-
         String response = authService.LoginUser(requestLoginDto);
-
-
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
-
-
-
-
-
 }

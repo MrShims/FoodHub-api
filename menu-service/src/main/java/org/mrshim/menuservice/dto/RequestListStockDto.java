@@ -18,6 +18,4 @@ public class RequestListStockDto {
      * Список ингредиетов
      */
     private List<RequestStockDto> lineDishes;
-
-
 }

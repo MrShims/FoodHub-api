@@ -1,0 +1,15 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka
+
+server:
+  port: 0
+kafka:
+  bootstrap-servers: http://broker:9092
+  group-id: notification
+  schema-registry-url: http://localhost:8085
+
+spring.application.name: notification-service
+spring.config.import: configserver:http://localhost:9999
+spring.profiles.active: local

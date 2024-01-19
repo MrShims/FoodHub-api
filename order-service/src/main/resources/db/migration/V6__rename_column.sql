@@ -1,0 +1,1 @@
+ALTER TABLE tbl_order_status RENAME COLUMN statusName TO status_name;

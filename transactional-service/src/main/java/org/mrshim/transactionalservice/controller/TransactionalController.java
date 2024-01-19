@@ -22,24 +22,11 @@ public class TransactionalController {
 
     private final TransactionalService transactionalService;
 
-
-
-
-
-
     @PostMapping("/charge")
     public Mono<String> startTransactional(@RequestHeader("Authorization") String authToken, @RequestBody PaymentRequest paymentRequest) {
-
-
-        CompletableFuture<String> future=CompletableFuture.supplyAsync(()->
-
-                        transactionalService.charge(paymentRequest,authToken)
-                );
-
-       return Mono.fromFuture(future);
-
-
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() ->
+                transactionalService.charge(paymentRequest, authToken)
+        );
+        return Mono.fromFuture(future);
     }
-
-
 }

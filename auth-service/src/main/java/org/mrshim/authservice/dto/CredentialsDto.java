@@ -14,7 +14,6 @@ public class CredentialsDto {
     private String value;
     private String temporary;
 
-
     public CredentialsDto(String value) {
         this.type = "password";
         this.value = value;
